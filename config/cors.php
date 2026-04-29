@@ -23,10 +23,11 @@ return [
 
     // Domaines autorisés à appeler l'API
     'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
-        'http://127.0.0.1:5173',
-        'http://localhost:5173',
-    ],
+    'https://whatsorder-web-two.vercel.app',
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    env('FRONTEND_URL', 'http://localhost:5173'),
+],
 
     // Patterns d'origines (regex). Vide pour nous.
     'allowed_origins_patterns' => [],
@@ -41,5 +42,5 @@ return [
     'max_age' => 0,
 
     // CRITIQUE pour Sanctum SPA : autoriser l'envoi des cookies
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 ];
