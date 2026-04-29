@@ -13,6 +13,27 @@ use Illuminate\Support\Facades\Route;
 | Préfixe automatique : /api/v1/
 |
 */
+use Illuminate\Support\Facades\DB;
+
+Route::get('/db-test', function() {
+    try {
+        $count = DB::table('users')->count();
+        return response()->json([
+            'success' => true,
+            'users_count' => $count,
+            'connection' => config('database.default'),
+            'host' => config('database.connections.mysql.host'),
+            'database' => config('database.connections.mysql.database'),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
