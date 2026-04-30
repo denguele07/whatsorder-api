@@ -14,59 +14,49 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Inscription d'un nouveau vendeur.
-     *
-     * POST /api/v1/auth/register
-     */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create($request->validated());// le mot de passe est automatiquement hashe dans le model User grace au mutateur setPasswordAttribute
+        $user = User::create($request->validated());
 
-        $token = $user->createToken('auth-token')->plainTextToken;// on genere un token d'authentification pour le nouvel utilisateur
+        $token = $user->createToken('auth-token')->plainTextToken;
 
-        // On retourne les infos du user et le token d'auth dans la reponse
         return response()->json([
-            'user'  => UserResource::make($user),// on utilise une ressource pour formater la reponse de l'utilisateur (ex : cacher le password, formater les dates, etc)
-            'token' => $token,// on retourne le token d'authentification pour que le client puisse l'utiliser dans les requetes suivantes
+            'message' => 'Inscription réussie.',
+            'user' => UserResource::make($user),
+            'token' => $token,
         ], 201);
     }
 
-    /**
-     * Connexion d'un vendeur existant.
-     *
-     * POST /api/v1/auth/login
-     */
     public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->validated();// on valide les donnees de la requete avec le LoginRequest
+        $credentials = $request->validated();
 
-        $user = User::where('email', $credentials['email'])->first();// on cherche un utilisateur avec l'email fourni
+        $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {// si aucun utilisateur n'est trouvé ou si le mot de passe ne correspond pas, on retourne une erreur de validation generique pour ne pas reveler si c'est l'email ou le mot de passe qui est incorrect
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Ces identifiants ne correspondent à aucun compte.'],
+                'email' => ['Email ou mot de passe incorrect.'],
             ]);
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;// on genere un token d'authentification pour l'utilisateur qui se connecte
+        // Supprime anciens tokens (important)
+        $user->tokens()->delete();
 
-        // On retourne les infos du user et le token d'auth dans la reponse
+        $token = $user->createToken('auth-token')->plainTextToken;
+
         return response()->json([
-            'user'  => UserResource::make($user),// on utilise une ressource pour formater la reponse de l'utilisateur (ex : cacher le password, formater les dates, etc)
-            'token' => $token,// on retourne le token d'authentification pour que le client puisse l'utiliser dans les requetes suivantes
+            'message' => 'Connexion réussie.',
+            'user' => UserResource::make($user),
+            'token' => $token,
         ]);
     }
 
-    /**
-     * Déconnexion : révoque le token utilisé pour la requête.
-     *
-     * POST /api/v1/auth/logout
-     */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Déconnexion réussie.',
+        ]);
     }
 }
