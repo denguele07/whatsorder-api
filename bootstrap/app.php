@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,17 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
 
-        // Middleware API : activer Sanctum SPA
-
-        // Ce middleware détecte si la requête vient d'un domaine listé dans
-        // SANCTUM_STATEFUL_DOMAINS. Si oui, il active les sessions (cookies).
-        // Sinon, il laisse passer en mode stateless (tokens).
-        $middleware->api(prepend: [
-            EnsureFrontendRequestsAreStateful::class,
-        ]);
-
-
-        // Redirection auth pour les routes non-API
+        // CORS doit passer avant les autres middlewares
+        $middleware->prepend(HandleCors::class);
 
         $middleware->redirectGuestsTo(function ($request) {
             if (! $request->expectsJson() && ! $request->is('api/*')) {
@@ -33,12 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Forcer le format JSON pour les routes /api/*
         $exceptions->shouldRenderJsonWhen(function ($request, $throwable) {
-            if ($request->is('api/*')) {
-                return true;
-            }
-
-            return $request->expectsJson();
+            return $request->is('api/*') || $request->expectsJson();
         });
-    })->create();
+    })
+    ->create();
