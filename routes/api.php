@@ -3,7 +3,17 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\OrderController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/run-migrations-now', function () {
+    Artisan::call('migrate', ['--force' => true]);
+
+    return response()->json([
+        'message' => 'Migrations executed',
+        'output' => \Artisan::output(),
+    ]);
+});
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
