@@ -7,6 +7,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 
+Route::get('/clear-cache-secret', function() {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    return response()->json([
+        'message' => 'Caches cleared',
+    ]);
+});
 // Route de test DB
 Route::get('/db-test', function() {
     try {
