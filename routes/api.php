@@ -7,12 +7,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 
-/*
-|--------------------------------------------------------------------------
-| ROUTES TEMPORAIRES — À SUPPRIMER APRÈS DEBUG/SETUP
-|--------------------------------------------------------------------------
-*/
-
 // Route de test DB
 Route::get('/db-test', function() {
     try {
@@ -34,7 +28,7 @@ Route::get('/db-test', function() {
     }
 });
 
-// Route de setup DB (migrations + seed)
+// Route de setup DB
 Route::get('/setup-database-secret-xyz', function() {
     try {
         Artisan::call('migrate', ['--force' => true]);
@@ -52,27 +46,18 @@ Route::get('/setup-database-secret-xyz', function() {
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
         ], 500);
     }
 });
 
-/*
-|--------------------------------------------------------------------------
-| API Routes — Version 1
-|--------------------------------------------------------------------------
-*/
-
+// API Routes V1
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    // ROUTES PUBLIQUES (pas d'authentification)
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::post('register', [AuthController::class, 'register'])->name('register');
         Route::post('login', [AuthController::class, 'login'])->name('login');
     });
 
-    // ROUTES PROTÉGÉES (auth:sanctum requis)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('user', fn (Request $request) => $request->user())->name('user');
